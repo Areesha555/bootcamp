@@ -61,3 +61,33 @@ jobs:
           docker stop my-website || true
           docker rm my-website || true
           docker run -d --name my-website -p 80:80 website2
+deploy:
+  runs-on: self-hosted
+  needs: test
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Docker image
+      uses: actions/download-artifact@v4
+      with:
+        name: website2-image
+
+    - name: Check if Docker image exists
+      run: ls -l website2.tar
+
+    - name: Check Docker status
+      run: docker --version && docker ps
+
+    - name: Remove existing Docker image
+      run: docker rmi website2 || true
+
+    - name: Load Docker image
+      run: docker load -i website2.tar
+
+    - name: Deploy application
+      run: |
+        echo "Deploying to VM5..."
+        docker stop my-website || true
+        docker rm my-website || true
+        docker run -d --name my-website -p 80:80 website2
